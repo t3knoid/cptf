@@ -1,0 +1,15 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="CopyTestFiles.Properties" GeneratedClassName="Settings1">
+  <Profiles />
+  <Settings>
+    <Setting Name="ProjectRootDir" Type="System.String" Scope="User">
+      <Value Profile="(Default)">c:\test\project</Value>
+    </Setting>
+    <Setting Name="ProjectSrcRootDir" Type="System.String" Scope="User">
+      <Value Profile="(Default)">c:\test\src</Value>
+    </Setting>
+    <Setting Name="TestDataRepoRootDir" Type="System.String" Scope="User">
+      <Value Profile="(Default)">c:\test\testdata</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
