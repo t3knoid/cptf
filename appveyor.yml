@@ -1,0 +1,15 @@
+version: 1.0.{build}
+configuration: Release
+platform: Any CPU
+before_build:
+- cmd: nuget restore
+build:
+  verbosity: minimal
+artifacts:
+- path: cptf\bin\$(configuration)\*.*
+  name: Release
+deploy:
+- provider: GitHub
+  auth_token:
+    secure: gX7uENpEovQdzscLdFEkic6eRFdekgL5T9Uuo/XIGwq7PSTFqnrka1xi+FTDDnYv
+  prerelease: true
