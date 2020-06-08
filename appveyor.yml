@@ -10,6 +10,8 @@ artifacts:
   name: Release
 deploy:
 - provider: GitHub
+  tag: latest
+  release: cptv v$(appveyord_build_version)
   auth_token:
     secure: gX7uENpEovQdzscLdFEkic6eRFdekgL5T9Uuo/XIGwq7PSTFqnrka1xi+FTDDnYv
   prerelease: true
