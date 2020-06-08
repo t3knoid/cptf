@@ -8,11 +8,8 @@ build:
 artifacts:
 - path: cptf\bin\$(configuration)\*.*
   name: Release
-before_deploy:
-- cmd: git tag -d latest
 deploy:
 - provider: GitHub
-  tag: latest
   release: cptv v$(appveyor_build_version)
   auth_token:
     secure: gX7uENpEovQdzscLdFEkic6eRFdekgL5T9Uuo/XIGwq7PSTFqnrka1xi+FTDDnYv
