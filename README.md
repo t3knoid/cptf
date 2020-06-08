@@ -27,3 +27,5 @@ CPTF expects two parameters, the name of the test data to copy and the project w
 
 cptf.exe -project project1 -testdata testdata1
 
+# Downloads
+Download the latest build [here](https://github.com/t3knoid/cptf/releases/tag/latest).
