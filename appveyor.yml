@@ -1,4 +1,4 @@
-version: 1.0.{build}
+version: 1.0.0.{build}
 configuration: Release
 platform: Any CPU
 before_build:
@@ -10,8 +10,7 @@ artifacts:
   name: Release
 deploy:
 - provider: GitHub
-  tag: latest
-  release: cptv v$(appveyor_build_version)
+  release: cptv v$(appveyord_build_version)
   auth_token:
     secure: gX7uENpEovQdzscLdFEkic6eRFdekgL5T9Uuo/XIGwq7PSTFqnrka1xi+FTDDnYv
   prerelease: true
