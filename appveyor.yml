@@ -8,6 +8,8 @@ build:
 artifacts:
 - path: cptf\bin\$(configuration)\*.*
   name: Release
+before_deploy:
+- cmd: git tag -d latest
 deploy:
 - provider: GitHub
   tag: latest
