@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("CopyTestFiles")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("cptf")]
+[assembly: AssemblyDescription("Copies files to a given destination")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("CopyTestFiles")]
-[assembly: AssemblyCopyright("Copyright ©  2020")]
+[assembly: AssemblyProduct("cptf")]
+[assembly: AssemblyCopyright("Copyright © Frank Refol 2020. All Rights Reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

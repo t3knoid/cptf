@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CopyTestFiles
+namespace cptf
 {
     /// <summary>
     /// A simple command-line parser.

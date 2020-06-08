@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace CopyTestFiles.Properties {
+namespace cptf.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
@@ -25,31 +25,19 @@ namespace CopyTestFiles.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("c:\\test\\project")]
-        public string ProjectRootDir {
+        [global::System.Configuration.DefaultSettingValueAttribute("d:\\test\\src")]
+        public string DestinationRootDir {
             get {
-                return ((string)(this["ProjectRootDir"]));
+                return ((string)(this["DestinationRootDir"]));
             }
             set {
-                this["ProjectRootDir"] = value;
+                this["DestinationRootDir"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("c:\\test\\src")]
-        public string ProjectSrcRootDir {
-            get {
-                return ((string)(this["ProjectSrcRootDir"]));
-            }
-            set {
-                this["ProjectSrcRootDir"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("c:\\test\\testdata")]
+        [global::System.Configuration.DefaultSettingValueAttribute("D:\\test\\src\\_testdata")]
         public string TestDataRepoRootDir {
             get {
                 return ((string)(this["TestDataRepoRootDir"]));
