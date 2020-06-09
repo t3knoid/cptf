@@ -11,9 +11,8 @@ namespace cptf
 {
     class Program
     {
-        static volatile bool run = true;
-        static TestData testData { get; set; }
-        static Task copyTask { get; set; }
+        public static string Status { get; private set; }
+
         static void Main(string[] args)
         {
             // Settings
@@ -23,24 +22,12 @@ namespace cptf
             String AppName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
             Version AppVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
+            // Copy Paramters
+            CopyParameters copyParameters = new CopyParameters();
+            copyParameters.DestinationRootDir = Settings.DestinationRootDir;
+            copyParameters.TestDataRepoRootDir = Settings.TestDataRepoRootDir;
+
             LogHelper.Log(LogLevel.INFO, "Starting " + AppName + " " + AppVersion.ToString());
-
-            try
-            {
-                // Check settings
-                LogHelper.Log(LogLevel.INFO,"Project source root directory setting = " + Settings.DestinationRootDir);
-                LogHelper.Log(LogLevel.INFO,"Test data repository root directory setting = " + Settings.TestDataRepoRootDir);
-
-                if ((!Directory.Exists(Settings.DestinationRootDir)) &
-                        (!Directory.Exists(Settings.TestDataRepoRootDir)))
-                {
-                    Console.WriteLine("Check the application settings and make sure the specified folders exists.");
-                }
-            }
-            catch (Exception ex)
-            {
-                LogHelper.Log(LogLevel.ERROR, "Error checking settings", ex);           
-            }
 
             try
             {
@@ -49,44 +36,33 @@ namespace cptf
 
                 if (parser.Arguments.Count > 0)
                 {
-                    string testdataname = String.Empty;
-                    string project = String.Empty;
 
                     // get test data
                     if (parser.Arguments.ContainsKey("testdata"))
                     {
-                        testdataname = parser.Arguments["testdata"][0];
+                        copyParameters.Name = parser.Arguments["testdata"][0];
                     };
 
                     // Get project parameter
                     if (parser.Arguments.ContainsKey("project"))
                     {
-                        project = parser.Arguments["project"][0];
+                        copyParameters.Project = parser.Arguments["project"][0];
                     };
 
-                    LogHelper.Log(LogLevel.INFO, string.Format("Running cptf.exe -testdata \"{0}\" -project \"{1}\"", testdataname, project));
+                    LogHelper.Log(LogLevel.INFO, string.Format("Running cptf.exe -testdata \"{0}\" -project \"{1}\"", copyParameters.Name, copyParameters.Project));
 
                     // If any of the parameter is not specified exit
-                    if (String.IsNullOrWhiteSpace(testdataname) || String.IsNullOrWhiteSpace(project))
+                    if (String.IsNullOrWhiteSpace(copyParameters.Name) || String.IsNullOrWhiteSpace(copyParameters.Project))
                     {
                         Usage();
-                        LogHelper.Log(LogLevel.INFO,"Test data or Project incorrectly specified");
+                        LogHelper.Log(LogLevel.INFO, "Test data or Project incorrectly specified");
                         Environment.Exit(1);
                     };
 
-                    // Copy test data and make sure to handle CTRL-C and make sure the RoboCOpy
-                    // thread is shutdown if CTRL-C is pressed.
-                    testData = new TestData { Name = testdataname, Project = project, TestDataRepoRootDir = Settings.TestDataRepoRootDir, DestinationRootDir = Settings.DestinationRootDir };
+                    // Start copy here
                     try
                     {
-                        run = true;
-                        LogHelper.Log(LogLevel.INFO, String.Format("Starting copy of {0} to {1}.", testdataname, project));
-                        copyTask = testData.Copy(); // Perform copy
-                        Console.CancelKeyPress += new ConsoleCancelEventHandler(Console_CancelKeyPress); // CTRL-C handler
-
-                        while (run)
-                        {
-                        }
+                        CopyTestData.Start(copyParameters);
                     }
                     catch (Exception ex)
                     {
@@ -105,45 +81,7 @@ namespace cptf
             }
         }
 
-        private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
-        {
-            e.Cancel = true;
-            LogHelper.Log(LogLevel.INFO, "User pressed cancel.");
-            if (copyTask.IsCompleted)
-            {
-                run = false;
-                return;
-            }
-            else
-            {
-                LogHelper.Log(LogLevel.INFO, "Pausing copy.");
-                testData.RoboCopy.Pause();
-            } 
-            Console.WriteLine("\nCancel (Y/N)?");
-            var k = Console.ReadKey(true);
-            if (k.Key == ConsoleKey.Y)
-            {
-                if (!copyTask.IsCompleted)  // Check if RoboCopy is running
-                {
-                    LogHelper.Log(LogLevel.INFO, "Shutting down RoboCopy task.");
-                    testData.RoboCopy.Stop();  // Stop RoboCopy
-                }
-                Console.WriteLine("\n Copy aborted");
-                LogHelper.Log(LogLevel.INFO, "User cancelled copy.");
-                run = false;
-            }
-            else
-            {
-                LogHelper.Log(LogLevel.INFO, "Resuming copy.");
-                Console.WriteLine("Resuming copy");
-                if (testData.RoboCopy.IsPaused)
-                {
-                    testData.RoboCopy.Resume();
-                }
-                run = true;
-            }
 
-        }
 
         /// <summary>
         /// Show usage message in the console
@@ -152,5 +90,6 @@ namespace cptf
         {
             Console.WriteLine("usage: CopyTestFiles -testdata testdatadir -project projectname");
         }
+
     }
 }

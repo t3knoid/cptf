@@ -11,22 +11,8 @@ namespace cptf
 {
     public class TestData
     {
-        /// <summary>
-        /// The name of the test data to copy
-        /// </summary>
-        public string Name { get; set; }
-        /// <summary>
-        /// The name of the project to copy to
-        /// </summary>
-        public string Project { get; internal set; }
-        /// <summary>
-        /// The root folder where the test data is located
-        /// </summary>
-        public string TestDataRepoRootDir { get; set; }
-        /// <summary>
-        /// The root folder where the destination folder is located
-        /// </summary>
-        public string DestinationRootDir { get; set; }
+
+        public CopyParameters CopyParameters { get; set; }
 
         public RoboCommand RoboCopy { get; set; }
 
@@ -55,26 +41,28 @@ namespace cptf
 
         public Task Copy()
         {
-            if (!DirExists(this.TestDataRepoRootDir))
+            if (!DirExists(CopyParameters.TestDataRepoRootDir))
             {
-                throw new Exception("Test data repository root directory not found, " + this.TestDataRepoRootDir);
+                throw new Exception("Test data repository root directory not found, " + CopyParameters.TestDataRepoRootDir);
             }
 
-            string destinationDir = Path.Combine(this.DestinationRootDir, this.Project);
+            // Append project name to destination folder
+            string destinationDir = Path.Combine(CopyParameters.DestinationRootDir, CopyParameters.Project);
 
             if (!DirExists(destinationDir))
             {
                 throw new Exception("Destination root directory not found, " + destinationDir);
             }
 
-            string sourceDir = Path.Combine(this.TestDataRepoRootDir, this.Name);
+            // Append test data name to test data repository root
+            string sourceDir = Path.Combine(CopyParameters.TestDataRepoRootDir, CopyParameters.Name);
 
             if (!DirExists(sourceDir))
             {
                 throw new Exception("Test data directory to copy not found, " + sourceDir);
             }
 
-            destinationDir = Path.Combine(destinationDir, this.Name);   // Add the test data name to destination
+            destinationDir = Path.Combine(destinationDir, CopyParameters.Name);   // Add the test data name to destination
 
             LogHelper.Log(LogLevel.INFO, "Source folder = " + sourceDir);
             LogHelper.Log(LogLevel.INFO, "Destination folder = " + destinationDir);
