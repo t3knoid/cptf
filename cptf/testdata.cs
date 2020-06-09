@@ -187,6 +187,8 @@ namespace cptf
             RoboCopy.OnCopyProgressChanged += rbc_OnCopyProgressChanged;
             RoboCopy.OnCommandCompleted += rbc_OnCommandCompleted;
             // copy options
+
+            RoboCopy.CopyOptions.MultiThreadedCopiesCount = 16;
             RoboCopy.CopyOptions.Source = sourceDir;
             RoboCopy.CopyOptions.Destination = destinationDir;
             RoboCopy.CopyOptions.CopySubdirectories = true;
