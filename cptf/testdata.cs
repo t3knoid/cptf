@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace cptf
 {
@@ -60,16 +61,14 @@ namespace cptf
             }
 
             string destinationDir = Path.Combine(this.DestinationRootDir, this.Project);
-            LogHelper.Log(LogLevel.INFO, "Destination folder = " + destinationDir);
 
             if (!DirExists(destinationDir))
             {
                 throw new Exception("Destination root directory not found, " + destinationDir);
             }
-          
+
             string sourceDir = Path.Combine(this.TestDataRepoRootDir, this.Name);
-            LogHelper.Log(LogLevel.INFO, "Source folder = " + sourceDir);
-            
+
             if (!DirExists(sourceDir))
             {
                 throw new Exception("Test data directory to copy not found, " + sourceDir);
@@ -77,17 +76,22 @@ namespace cptf
 
             destinationDir = Path.Combine(destinationDir, this.Name);   // Add the test data name to destination
 
+            LogHelper.Log(LogLevel.INFO, "Source folder = " + sourceDir);
+            LogHelper.Log(LogLevel.INFO, "Destination folder = " + destinationDir);
+
             RoboCopy = new RoboCommand();
 
             // events
             RoboCopy.OnFileProcessed += rbc_OnFileProcessed;
-            //rbc.OnCommandCompleted += rbc_OnCommandCompleted;
+            RoboCopy.OnCopyProgressChanged += rbc_OnCopyProgressChanged;
+            RoboCopy.OnCommandCompleted += rbc_OnCommandCompleted;
             // copy options
             RoboCopy.CopyOptions.Source = sourceDir;
             RoboCopy.CopyOptions.Destination = destinationDir;
             RoboCopy.CopyOptions.CopySubdirectories = true;
             RoboCopy.CopyOptions.UseUnbufferedIo = true;
             RoboCopy.CopyOptions.Mirror = true;
+            RoboCopy.CopyOptions.EnableRestartMode = true;
             RoboCopy.CopyOptions.UseUnbufferedIo = true;
             // retry options
             RoboCopy.RetryOptions.RetryCount = 1;
@@ -96,9 +100,35 @@ namespace cptf
             return cpTask;
         }
 
+        private void rbc_OnCopyProgressChanged(object sender, CopyProgressEventArgs e)
+        {
+            Console.Write(".");
+        }
+
+        private void rbc_OnCommandCompleted(object sender, RoboCommandCompletedEventArgs e)
+        {
+            Console.WriteLine("Copy Complete!");
+
+        }
+
         private void rbc_OnFileProcessed(object sender, FileProcessedEventArgs e)
         {
-            Console.WriteLine(e.ProcessedFile.Name);
+            switch (e.ProcessedFile.FileClass)
+            {
+                case "System Message":
+                    Console.WriteLine(e.ProcessedFile.Name);
+                    break;
+                case "New Dir":
+                    Console.WriteLine(e.ProcessedFile.Name);
+                    break;
+                case "New File":
+                    Console.WriteLine("");
+                    Console.Write("Copying " + e.ProcessedFile.Name);
+                    break;
+                default:
+                    break;
+            }
+            
         }
     }
 }

@@ -11,6 +11,9 @@ namespace cptf
 {
     class Program
     {
+        static volatile bool run = true;
+        static TestData testData { get; set; }
+        static Task copyTask { get; set; }
         static void Main(string[] args)
         {
             // Settings
@@ -61,8 +64,7 @@ namespace cptf
                         project = parser.Arguments["project"][0];
                     };
 
-                    LogHelper.Log(LogLevel.INFO,"Test data parameter set to " + testdataname);
-                    LogHelper.Log(LogLevel.INFO, "Project parameter set to " + project);
+                    LogHelper.Log(LogLevel.INFO, string.Format("Running cptf.exe -testdata \"{0}\" -project \"{1}\"", testdataname, project));
 
                     // If any of the parameter is not specified exit
                     if (String.IsNullOrWhiteSpace(testdataname) || String.IsNullOrWhiteSpace(project))
@@ -74,29 +76,17 @@ namespace cptf
 
                     // Copy test data and make sure to handle CTRL-C and make sure the RoboCOpy
                     // thread is shutdown if CTRL-C is pressed.
-                    TestData testdata = new TestData { Name = testdataname, Project = project, TestDataRepoRootDir = Settings.TestDataRepoRootDir, DestinationRootDir = Settings.DestinationRootDir };
+                    testData = new TestData { Name = testdataname, Project = project, TestDataRepoRootDir = Settings.TestDataRepoRootDir, DestinationRootDir = Settings.DestinationRootDir };
                     try
                     {
+                        run = true;
                         LogHelper.Log(LogLevel.INFO, String.Format("Starting copy of {0} to {1}.", testdataname, project));
-                        var task = testdata.Copy(); // Perform copy
-                        var autoResetEvent = new AutoResetEvent(false);
-                        Console.CancelKeyPress += (sender, eventArgs) =>
-                        {
-                            // cancel the cancellation to allow the program to shutdown cleanly
-                            eventArgs.Cancel = true;
-                            autoResetEvent.Set();
-                            LogHelper.Log(LogLevel.INFO, "User cancelled copy.");
-                        };
+                        copyTask = testData.Copy(); // Perform copy
+                        Console.CancelKeyPress += new ConsoleCancelEventHandler(Console_CancelKeyPress); // CTRL-C handler
 
-                        // main blocks here waiting for ctrl-C
-                        autoResetEvent.WaitOne();
-                        if (!task.IsCompleted)  // Check if RoboCopy is running
+                        while (run)
                         {
-                            LogHelper.Log(LogLevel.INFO, "Shutting down RoboCopy task.");
-                            testdata.RoboCopy.Stop();  // Stop RoboCopy
                         }
-                        LogHelper.Log(LogLevel.INFO, "Now shutting down");
-                        Console.WriteLine("Now shutting down");
                     }
                     catch (Exception ex)
                     {
@@ -113,6 +103,46 @@ namespace cptf
             {
                 LogHelper.Log(LogLevel.ERROR, "Error in getting command-line parameters", ex);
             }
+        }
+
+        private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            e.Cancel = true;
+            LogHelper.Log(LogLevel.INFO, "User pressed cancel.");
+            if (copyTask.IsCompleted)
+            {
+                run = false;
+                return;
+            }
+            else
+            {
+                LogHelper.Log(LogLevel.INFO, "Pausing copy.");
+                testData.RoboCopy.Pause();
+            } 
+            Console.WriteLine("\nCancel (Y/N)?");
+            var k = Console.ReadKey(true);
+            if (k.Key == ConsoleKey.Y)
+            {
+                if (!copyTask.IsCompleted)  // Check if RoboCopy is running
+                {
+                    LogHelper.Log(LogLevel.INFO, "Shutting down RoboCopy task.");
+                    testData.RoboCopy.Stop();  // Stop RoboCopy
+                }
+                Console.WriteLine("\n Copy aborted");
+                LogHelper.Log(LogLevel.INFO, "User cancelled copy.");
+                run = false;
+            }
+            else
+            {
+                LogHelper.Log(LogLevel.INFO, "Resuming copy.");
+                Console.WriteLine("Resuming copy");
+                if (testData.RoboCopy.IsPaused)
+                {
+                    testData.RoboCopy.Resume();
+                }
+                run = true;
+            }
+
         }
 
         /// <summary>
