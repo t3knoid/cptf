@@ -9,17 +9,127 @@ using System.Windows.Threading;
 
 namespace cptf
 {
+    /// <summary>
+    /// Defines a delegate that is used for a callback from within the TestData class
+    /// </summary>
+    /// <param name="message"></param>
+    public delegate void CopyTaskCompleteDelegate(string message);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class CopyTestData
+    {
+        volatile bool run = true;
+        TestData testData { get; set; }
+        Task copyTask { get; set; }
+
+        public CopyTestData()
+        {  }
+        /// <summary>
+        /// Starts the copy
+        /// </summary>
+        /// <param name="p">Copy parameters</param>
+        public void Start(CopyParameters p)
+        {
+            CopyTaskCompleteDelegate callback = new CopyTaskCompleteDelegate(CopyTaskComplete);
+            // Copy test data and make sure to handle CTRL-C and make sure the RoboCOpy
+            // thread is shutdown if CTRL-C is pressed.
+            testData = new TestData
+            {
+                TaskCompleteCallBack = callback,
+                CopyParameters = p,
+            };
+
+            try
+            {
+                run = true;
+                LogHelper.Log(LogLevel.INFO, String.Format("Starting copy of {0} to {1}.", p.Name, p.Project));
+                copyTask = testData.Copy(); // Perform copy
+                Console.CancelKeyPress += new ConsoleCancelEventHandler(Console_CancelKeyPress); // CTRL-C handler
+
+                while (run)
+                {
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        /// <summary>
+        /// Method that will be called by the callback delegate from within the TestData class
+        /// </summary>
+        /// <param name="message"></param>
+        public void CopyTaskComplete(string message)
+        {
+            Console.WriteLine("Copy completed!");
+            run = false;
+        }
+        /// <summary>
+        /// Event that handles CTRL-C
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            e.Cancel = true;
+            LogHelper.Log(LogLevel.INFO, "User pressed cancel.");
+            if (copyTask.IsCompleted)
+            {
+                run = false;
+                return;
+            }
+            else
+            {
+                LogHelper.Log(LogLevel.INFO, "Pausing copy.");
+                testData.RoboCopy.Pause();
+            }
+            Console.WriteLine("\nCancel (Y/N)?");
+            var k = Console.ReadKey(true);
+            if (k.Key == ConsoleKey.Y)
+            {
+                if (!copyTask.IsCompleted)  // Check if RoboCopy is running
+                {
+                    LogHelper.Log(LogLevel.INFO, "Shutting down RoboCopy task.");
+                    testData.RoboCopy.Stop();  // Stop RoboCopy
+                }
+                Console.WriteLine("\n Copy aborted");
+                LogHelper.Log(LogLevel.INFO, "User cancelled copy.");
+                run = false;
+            }
+            else
+            {
+                LogHelper.Log(LogLevel.INFO, "Resuming copy.");
+                Console.WriteLine("Resuming copy");
+                if (testData.RoboCopy.IsPaused)
+                {
+                    testData.RoboCopy.Resume();
+                }
+                run = true;
+            }
+
+        }
+
+    }
+    /// <summary>
+    /// A class that defines the test data. This includes methods
+    /// that copies test data to a given destination
+    /// </summary>
     public class TestData
     {
-
         public CopyParameters CopyParameters { get; set; }
-
         public RoboCommand RoboCopy { get; set; }
+        public CopyTaskCompleteDelegate TaskCompleteCallBack { get; internal set; }
 
         public TestData()
         {
         }
-
+        /// <summary>
+        /// Checks if a folder exists
+        /// </summary>
+        /// <param name="dir"></param>
+        /// <returns></returns>
         bool DirExists(string dir)
         {
             try
@@ -38,7 +148,10 @@ namespace cptf
             }
             return true;
         }
-
+        /// <summary>
+        /// The main method that performs the copy
+        /// </summary>
+        /// <returns></returns>
         public Task Copy()
         {
             if (!DirExists(CopyParameters.TestDataRepoRootDir))
@@ -87,18 +200,30 @@ namespace cptf
             var cpTask = RoboCopy.Start();
             return cpTask;
         }
-
+        /// <summary>
+        /// Event thats called to provide copy progress of a file
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void rbc_OnCopyProgressChanged(object sender, CopyProgressEventArgs e)
         {
             Console.Write(".");
         }
-
+        /// <summary>
+        /// Event that is called when copy has completed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void rbc_OnCommandCompleted(object sender, RoboCommandCompletedEventArgs e)
         {
-            Console.WriteLine("Copy Complete!");
-
+            TaskCompleteCallBack("Complete"); // A callback using a delegate that calls a method when the copy completes
         }
-
+        /// <summary>
+        /// Event that is called whenever a file is copied
+        /// This provides status 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void rbc_OnFileProcessed(object sender, FileProcessedEventArgs e)
         {
             switch (e.ProcessedFile.FileClass)

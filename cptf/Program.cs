@@ -62,7 +62,8 @@ namespace cptf
                     // Start copy here
                     try
                     {
-                        CopyTestData.Start(copyParameters);
+                        CopyTestData copyTestData = new CopyTestData();
+                        copyTestData.Start(copyParameters);
                     }
                     catch (Exception ex)
                     {

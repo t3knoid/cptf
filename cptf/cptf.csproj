@@ -52,7 +52,6 @@
   <ItemGroup>
     <Compile Include="CommandLine.cs" />
     <Compile Include="CopyParameters.cs" />
-    <Compile Include="CopyTestData.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
