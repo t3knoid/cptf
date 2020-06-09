@@ -196,6 +196,7 @@ namespace cptf
             RoboCopy.CopyOptions.Mirror = true;
             RoboCopy.CopyOptions.EnableRestartMode = true;
             RoboCopy.CopyOptions.UseUnbufferedIo = true;
+            RoboCopy.CopyOptions.InterPacketGap = 0;
             // retry options
             RoboCopy.RetryOptions.RetryCount = 1;
             RoboCopy.RetryOptions.RetryWaitTime = 2;
