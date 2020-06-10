@@ -89,7 +89,7 @@ namespace cptf
         /// </summary>
         static void Usage()
         {
-            Console.WriteLine("usage: CopyTestFiles -testdata testdatadir -project projectname");
+            Console.WriteLine("usage: cptf -testdata testdatadir -project projectname");
         }
 
     }
